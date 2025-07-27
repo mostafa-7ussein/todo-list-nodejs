@@ -23,7 +23,14 @@ app.set('views', path.join(__dirname, 'views'));
 // الميدل وير
 app.use(express.urlencoded());
 app.use(express.static('assets'));
-
+app.get('/health', (req, res) => {
+  const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+  res.status(200).json({
+    status: 'OK',
+    database: dbStatus,
+    timestamp: new Date()
+  });
+});
 // تسجيل المستخدم
 app.post('/register', async (req, res) => {
     try {
