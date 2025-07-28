@@ -17,6 +17,19 @@ pipeline {
             }
         }
 
+        stage('Verify Files') {
+            steps {
+                script {
+                    sh """
+                        echo "Checking ansible directory contents:"
+                        ls -la ${ANSIBLE_DIR}/
+                        echo "\nContents of playbook.yaml:"
+                        cat ${ANSIBLE_DIR}/playbook.yaml
+                    """
+                }
+            }
+        }
+
         stage('Build & Push') {
             steps {
                 script {
@@ -33,12 +46,12 @@ pipeline {
         stage('Update Ansible Variables') {
             steps {
                 script {
-                    // استخدام | كفاصل بدلاً من / لتجنب المشاكل مع المسارات
                     sh """
+                        echo "Updating docker image in playbook.yaml"
                         sed -i 's|docker_image: .*|docker_image: ${IMAGE_NAME}:${VERSION}|' ${ANSIBLE_DIR}/playbook.yaml
+                        echo "Updated playbook content:"
+                        cat ${ANSIBLE_DIR}/playbook.yaml | grep docker_image:
                     """
-                    // خطوة إضافية للتحقق من التعديل
-                    sh "cat ${ANSIBLE_DIR}/playbook.yaml | grep docker_image:"
                 }
             }
         }
@@ -47,13 +60,13 @@ pipeline {
             steps {
                 script {
                     dir(ANSIBLE_DIR) {
-                        // تشغيل Ansible Playbook
+                        sh 'pwd && ls -la'
                         ansiblePlaybook(
                             playbook: 'playbook.yaml',
                             inventory: 'hosts',
                             credentialsId: 'ansible-ssh-key',
                             disableHostKeyChecking: true,
-                            extras: '-v' // وضع verbose لرؤية التفاصيل
+                            extras: '-vvv' // زيادة مستوى التفاصيل
                         )
                     }
                 }
@@ -64,12 +77,11 @@ pipeline {
     post {
         always {
             cleanWs()
-            // إضافة خطوة لتنظيف الصور القديمة إن أردت
             sh "docker system prune -f || true"
         }
         failure {
-            // تم إزالة إشعار Slack أو يمكنك تثبيت الملحق أولاً
             echo "Pipeline failed! Please check the logs."
+            // يمكنك إضافة إشعارات أخرى هنا مثل البريد الإلكتروني
         }
     }
 }
