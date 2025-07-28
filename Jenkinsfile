@@ -3,10 +3,10 @@ pipeline {
 
     environment {
         IMAGE_NAME = "mostafahu/todo-list-nodejs"
-        REGISTRY_CREDENTIALS = "dockerhub-credentials"  // كما ذكرت
+        REGISTRY_CREDENTIALS = "dockerhub-credentials"
         APP_PORT = "4000"
         VERSION = "${env.BUILD_NUMBER}"
-        ANSIBLE_DIR = "ansible"  // مجلد Ansible
+        ANSIBLE_DIR = "ansible"
     }
 
     stages {
@@ -33,10 +33,12 @@ pipeline {
         stage('Update Ansible Variables') {
             steps {
                 script {
-                    // تحديث ملف playbook.yaml لاستخدام الإصدار الجديد
+                    // استخدام | كفاصل بدلاً من / لتجنب المشاكل مع المسارات
                     sh """
-                        sed -i 's/docker_image: .*/docker_image: ${IMAGE_NAME}:${VERSION}/' ${ANSIBLE_DIR}/playbook.yaml
+                        sed -i 's|docker_image: .*|docker_image: ${IMAGE_NAME}:${VERSION}|' ${ANSIBLE_DIR}/playbook.yaml
                     """
+                    // خطوة إضافية للتحقق من التعديل
+                    sh "cat ${ANSIBLE_DIR}/playbook.yaml | grep docker_image:"
                 }
             }
         }
@@ -49,8 +51,9 @@ pipeline {
                         ansiblePlaybook(
                             playbook: 'playbook.yaml',
                             inventory: 'hosts',
-                            credentialsId: 'ansible-ssh-key',  // يجب تعريفها في Jenkins
-                            disableHostKeyChecking: true
+                            credentialsId: 'ansible-ssh-key',
+                            disableHostKeyChecking: true,
+                            extras: '-v' // وضع verbose لرؤية التفاصيل
                         )
                     }
                 }
@@ -61,10 +64,12 @@ pipeline {
     post {
         always {
             cleanWs()
+            // إضافة خطوة لتنظيف الصور القديمة إن أردت
+            sh "docker system prune -f || true"
         }
         failure {
-            slackSend channel: '#deploy-errors',
-                     message: "Failed: ${JOB_NAME} #${VERSION}"
+            // تم إزالة إشعار Slack أو يمكنك تثبيت الملحق أولاً
+            echo "Pipeline failed! Please check the logs."
         }
     }
 }
