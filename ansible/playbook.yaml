@@ -2,6 +2,7 @@
   hosts: my_hosts
   become: yes
   vars:
+    docker_image: "mostafahu/todo-list-nodejs:latest"  # ← هذا السطر مضاف
     app_image: "{{ docker_image }}"
     app_port: 4000
     project_name: "todo-app-{{ build_number }}"
@@ -30,3 +31,4 @@
       command: docker-compose -p {{ project_name }} up -d
       args:
         chdir: /opt/todo-app
+
