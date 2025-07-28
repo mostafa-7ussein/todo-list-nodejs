@@ -1,0 +1,32 @@
+- name: Deploy Todo App using Docker Compose
+  hosts: my_hosts
+  become: yes
+  vars:
+    app_image: "{{ docker_image }}"
+    app_port: 4000
+    project_name: "todo-app-{{ build_number }}"
+
+  tasks:
+    - name: Install Docker and Docker Compose
+      include_tasks: install-docker.yml
+
+    - name: Ensure app directory exists
+      file:
+        path: /opt/todo-app
+        state: directory
+
+    - name: Copy docker-compose.yml
+      template:
+        src: docker-compose.yml.j2
+        dest: /opt/todo-app/docker-compose.yml
+
+    - name: Stop and remove old containers
+      command: docker-compose -p {{ project_name }} down
+      args:
+        chdir: /opt/todo-app
+      ignore_errors: yes
+
+    - name: Start containers
+      command: docker-compose -p {{ project_name }} up -d
+      args:
+        chdir: /opt/todo-app

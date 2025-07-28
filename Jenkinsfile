@@ -1,59 +1,39 @@
 pipeline {
     agent any
-
     environment {
         IMAGE_NAME = "mostafahu/todo-list-nodejs"
-        REGISTRY_CREDENTIALS = "dockerhub-credentials"
-        CONTAINER_NAME = "todo-list-container"
-        APP_PORT = "4000"
-        VERSION = "${env.BUILD_NUMBER}"   // هنا نستخدم رقم البناء من Jenkins كنسخة
+        DOCKER_CREDS = credentials('dockerhub-creds')
+        BUILD_NUMBER = "${env.BUILD_NUMBER}"
     }
-
     stages {
         stage('Checkout') {
             steps {
-                git url: 'https://github.com/mostafa-7ussein/todo-list-nodejs.git', branch: 'master'
+                git branch: 'main', url: 'https://github.com/mostafa-7ussein/todo-list-nodejs.git'
             }
         }
-
-        stage('Build Docker Image') {
+        stage('Build & Push Docker Image') {
             steps {
                 script {
-                    dockerImage = docker.build("${IMAGE_NAME}:${VERSION}")
-                }
-            }
-        }
-
-        stage('Push to DockerHub') {
-            steps {
-                script {
-                    docker.withRegistry('https://index.docker.io/v1/', "${REGISTRY_CREDENTIALS}") {
-                        dockerImage.push()                    
-                        dockerImage.push("latest")           
+                    docker.build("${IMAGE_NAME}:${BUILD_NUMBER}")
+                    docker.withRegistry('https://index.docker.io/v1/', DOCKER_CREDS) {
+                        docker.image("${IMAGE_NAME}:${BUILD_NUMBER}").push()
                     }
                 }
             }
         }
-
-        stage('Run Container') {
+        stage('Deploy with Ansible') {
             steps {
                 script {
-                    sh """
-                        if [ \$(docker ps -aq -f name=${CONTAINER_NAME}) ]; then
-                            docker rm -f ${CONTAINER_NAME}
-                        fi
-                    """
-                    sh """
-                        docker run -d --name ${CONTAINER_NAME} -p ${APP_PORT}:${APP_PORT} ${IMAGE_NAME}:${VERSION}
-                    """
+                    ansiblePlaybook(
+                        playbook: 'ansible/playbook.yml',
+                        inventory: 'ansible/hosts',
+                        extraVars: [
+                            docker_image: "${IMAGE_NAME}:${BUILD_NUMBER}",
+                            build_number: "${BUILD_NUMBER}"
+                        ]
+                    )
                 }
             }
-        }
-    }
-
-    post {
-        always {
-            cleanWs()
         }
     }
 }

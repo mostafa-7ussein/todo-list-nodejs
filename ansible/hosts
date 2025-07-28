@@ -1,0 +1,9 @@
+[my_hosts]
+ansible-vm ansible_host=10.116.254.103
+
+[my_hosts:vars]
+ansible_connection=ssh
+ansible_user=ubuntu
+ansible_private_key_file=~/.ssh/id_ansible_vm
+ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+
