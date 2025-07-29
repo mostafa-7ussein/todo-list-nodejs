@@ -6,7 +6,7 @@
   become_method: ansible.builtin.sudo
 
   vars:
-    docker_compose_src: ../docker-compose.tpl.yml
+    docker_compose_src: ../docker-compose.yml
     docker_compose_dest: /home/todolist/docker-compose.yml
 
   tasks:
@@ -57,8 +57,8 @@
         groups: docker
         append: yes
 
-    - name: Template docker-compose with custom image
-      template:
+    - name: Copy docker-compose.yml to remote host
+      copy:
         src: "{{ docker_compose_src }}"
         dest: "{{ docker_compose_dest }}"
         owner: "{{ ansible_user }}"
@@ -66,6 +66,7 @@
         mode: '0644'
 
     - name: Run docker-compose
+      become: true
       args:
         chdir: "/home/{{ ansible_user }}"
       command: docker-compose up -d

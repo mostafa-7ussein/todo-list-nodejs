@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: app
-          image: {{ docker_image }}  # استبدله إذا كنت تجهز الملف تلقائياً
+          image: mostafahu/todo-list-nodejs:32
           ports:
             - containerPort: 4000
           env:

@@ -1,10 +1,7 @@
+todolist ansible_host=10.116.254.86
 [my_hosts]
-todolist ansible_host=10.116.254.86 
-
+todolist
 [my_hosts:vars]
-ansible_connection=ssh
+ansible_connect=ssh
 ansible_user=todolist
-ansible_private_key_file=/var/lib/jenkins/.ssh/id_rsa
-ansible_python_interpreter=/home/todolist/ansible-env/bin/python
-
-
+private_key=/home/mostafa/.ssh/id_rsa
