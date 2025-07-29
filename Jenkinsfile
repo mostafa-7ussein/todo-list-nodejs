@@ -34,9 +34,10 @@ pipeline {
 
         stage('Run Ansible Playbook') {
             steps {
-                sh '''
-                ansible-playbook -i ansible/hosts ansible/playbook.yaml --extra-vars "docker_image=${IMAGE_NAME}:${VERSION}"
-                '''
+		    sh '''
+			    ssh-keyscan -H 10.116.254.86 >> ~/.ssh/known_hosts
+			    ansible-playbook -i ansible/hosts ansible/playbook.yaml --extra-vars "docker_image=${IMAGE_NAME}:${VERSION}"
+                	'''
             }
         }
     }
