@@ -34,17 +34,13 @@ pipeline {
 
      stage('Run Ansible Playbook') {
     steps {
-        withCredentials([sshUserPrivateKey(credentialsId: 'ansible-ssh-key', keyFileVariable: 'KEY', usernameVariable: 'SSH_USER')]) {
-            sh '''
-                mkdir -p ~/.ssh
-                ssh-keyscan -H 10.116.254.86 >> ~/.ssh/known_hosts
 
-                ansible-playbook -i ansible/hosts ansible/playbook.yaml \
-                  --extra-vars "docker_image=${IMAGE_NAME}:${VERSION}" \
-                  --user=$SSH_USER \
-                  --private-key=$KEY
-            '''
-        }
+          
+ 		 sh '''
+              		  ansible-playbook -i ansible/hosts ansible/playbook.yaml --extra-vars "docker_image=${IMAGE_NAME}:${VERSION}"
+              	  '''
+            
+        
     }
 }
 
