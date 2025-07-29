@@ -34,7 +34,7 @@ pipeline {
 
 	stage('Run Ansible Playbook') {
 	    steps {
-		sshagent (credentials: ['todolist-key']) {
+
 		    sh '''
 		    ansible-playbook -i ansible/hosts ansible/playbook.yaml --extra-vars "docker_image=${IMAGE_NAME}:${VERSION}"
 		    '''
