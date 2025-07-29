@@ -4,5 +4,6 @@ todolist ansible_host=10.116.254.86
 [my_hosts:vars]
 ansible_connection=ssh
 ansible_user=todolist
+ansible_private_key_file=/var/lib/jenkins/.ssh/id_rsa
 
 
