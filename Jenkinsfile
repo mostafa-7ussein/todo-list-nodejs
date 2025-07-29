@@ -32,16 +32,13 @@ pipeline {
             }
         }
 
-	stage('Run Ansible Playbook') {
-	    steps {
-
-		    sh '''
-		    ansible-playbook -i ansible/hosts ansible/playbook.yaml --extra-vars "docker_image=${IMAGE_NAME}:${VERSION}"
-		    '''
-		}
-	    }
-	}
-
+        stage('Run Ansible Playbook') {
+            steps {
+                sh '''
+                ansible-playbook -i ansible/hosts ansible/playbook.yaml --extra-vars "docker_image=${IMAGE_NAME}:${VERSION}"
+                '''
+            }
+        }
     }
 
     post {
