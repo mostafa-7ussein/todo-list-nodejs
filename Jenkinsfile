@@ -3,8 +3,8 @@ pipeline {
 
     environment {
         IMAGE_NAME = "mostafahu/todo-list-nodejs"
-        IMAGE_TAG = "v1"
         REGISTRY_CREDENTIALS = "dockerhub-credentials"
+        VERSION = "${env.BUILD_NUMBER}"   
     }
 
     stages {
@@ -17,27 +17,33 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    docker.build("${IMAGE_NAME}:${IMAGE_TAG}")
+                    dockerImage = docker.build("${IMAGE_NAME}:${VERSION}")
                 }
             }
         }
 
-        stage('Push Docker Image') {
+        stage('Push to DockerHub') {
             steps {
                 script {
-                    docker.withRegistry('', "${REGISTRY_CREDENTIALS}") {
-                        docker.image("${IMAGE_NAME}:${IMAGE_TAG}").push()
+                    docker.withRegistry('https://index.docker.io/v1/', "${REGISTRY_CREDENTIALS}") {
+                        dockerImage.push()  // push only versioned tag
                     }
                 }
             }
         }
 
-        stage('Deploy with Ansible') {
+        stage('Run Ansible Playbook') {
             steps {
                 sh '''
-                    ansible-playbook ansible/deploy_app.yml -i ansible/inventory.ini
+                ansible-playbook -i ansible/hosts ansible/playbook.yaml --extra-vars "docker_image=${IMAGE_NAME}:${VERSION}"
                 '''
             }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()
         }
     }
 }

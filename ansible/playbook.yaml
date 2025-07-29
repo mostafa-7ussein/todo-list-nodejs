@@ -1,34 +1,72 @@
-- name: Deploy Todo App using Docker Compose
+---
+- name: Install Docker, Docker Compose, and run app using docker-compose
   hosts: my_hosts
   become: yes
+  gather_facts: true
+  become_method: ansible.builtin.sudo
+
   vars:
-    docker_image: "mostafahu/todo-list-nodejs:latest"  # ← هذا السطر مضاف
-    app_image: "{{ docker_image }}"
-    app_port: 4000
-    project_name: "todo-app-{{ build_number }}"
+    docker_compose_src: ../docker-compose.tpl.yml
+    docker_compose_dest: /home/todolist/docker-compose.yml
 
   tasks:
-    - name: Install Docker and Docker Compose
-      include_tasks: install-docker.yml
+    - name: Install required packages
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - software-properties-common
 
-    - name: Ensure app directory exists
-      file:
-        path: /opt/todo-app
-        state: directory
+    - name: Add Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
 
-    - name: Copy docker-compose.yml
+    - name: Add Docker repository
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable
+        state: present
+
+    - name: Install Docker
+      apt:
+        name: docker-ce
+        state: present
+        update_cache: true
+
+    - name: Start and enable Docker service
+      systemd:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Install Docker Compose
+      get_url:
+        url: https://github.com/docker/compose/releases/download/v2.24.4/docker-compose-linux-x86_64
+        dest: /usr/local/bin/docker-compose
+        mode: '0755'
+
+    - name: Verify docker-compose installation
+      command: docker-compose --version
+
+    - name: Add user to docker group
+      user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: yes
+
+    - name: Template docker-compose with custom image
       template:
-        src: docker-compose.yml.j2
-        dest: /opt/todo-app/docker-compose.yml
+        src: "{{ docker_compose_src }}"
+        dest: "{{ docker_compose_dest }}"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0644'
 
-    - name: Stop and remove old containers
-      command: docker-compose -p {{ project_name }} down
+    - name: Run docker-compose
       args:
-        chdir: /opt/todo-app
-      ignore_errors: yes
-
-    - name: Start containers
-      command: docker-compose -p {{ project_name }} up -d
-      args:
-        chdir: /opt/todo-app
+        chdir: "/home/{{ ansible_user }}"
+      command: docker-compose up -d
 
