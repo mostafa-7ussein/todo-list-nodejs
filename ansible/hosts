@@ -1,7 +1,8 @@
-todolist ansible_host=10.116.254.86
 [my_hosts]
-todolist
+todolist ansible_host=10.116.254.86
+
 [my_hosts:vars]
-ansible_connect=ssh
+ansible_connection=ssh
 ansible_user=todolist
-private_key=/home/mostafa/.ssh/id_rsa
+ansible_ssh_private_key_file=/home/mostafa/.ssh/id_rsa
+
