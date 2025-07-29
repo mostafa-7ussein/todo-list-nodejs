@@ -4,9 +4,8 @@ pipeline {
     environment {
         IMAGE_NAME = "mostafahu/todo-list-nodejs"
         REGISTRY_CREDENTIALS = "dockerhub-credentials"
-        VERSION = "${env.BUILD_NUMBER}"  
+        VERSION = "${env.BUILD_NUMBER}"
         DEPLOYMENT_NAMESPACE = "todo"
- 
     }
 
     stages {
@@ -34,19 +33,15 @@ pipeline {
             }
         }
 
-    # stage('Run Ansible Playbook') {
-   # steps {
-#
-    #                      sshagent(credentials: ['ansible-ssh-key']) {
-     #               sh '''
-      #                  ansible-playbook -i ansible/hosts ansible/playbook.yaml --extra-vars "docker_image=${IMAGE_NAME}:${VERSION}"
-      #              '''
- #      
-#         }
-#            
-  #      
- #   }
-#}
+        // stage('Run Ansible Playbook') {
+        //     steps {
+        //         sshagent(credentials: ['ansible-ssh-key']) {
+        //             sh '''
+        //                 ansible-playbook -i ansible/hosts ansible/playbook.yaml --extra-vars "docker_image=${IMAGE_NAME}:${VERSION}"
+        //             '''
+        //         }
+        //     }
+        // }
 
         stage('Deploy to Kubernetes') {
             steps {
@@ -64,7 +59,6 @@ pipeline {
                 }
             }
         }
-
     }
 
     post {
