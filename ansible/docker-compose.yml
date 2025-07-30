@@ -1,0 +1,27 @@
+version: '3'
+services:
+  app:
+    image: mostafahu/todo-list-nodejs:42
+    ports:
+      - "4000:4000"
+    environment:
+      - mongoDbUrl=mongodb://mongo:27017/todo
+    depends_on:
+      - mongo
+    networks:
+      - todo-net
+
+  mongo:
+    image: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - todo-net
+
+networks:
+  todo-net:
+
+volumes:
+  mongo-data:
