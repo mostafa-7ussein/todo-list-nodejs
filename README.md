@@ -1,6 +1,6 @@
 # 📝 To-Do List Node.js App
 
-A To-Do List application built using Node.js and MongoDB. It includes a full CI/CD pipeline using Jenkins, Docker, and Ansible, with automatic deployment to a remote server via SSH and Ansible.
+A To-Do List application built using Node.js and MongoDB. It includes a full CI/CD pipeline using Jenkins, Docker, and Ansible, with optional Kubernetes deployment for production environments.
 
 ---
 
@@ -9,6 +9,7 @@ A To-Do List application built using Node.js and MongoDB. It includes a full CI/
 - Node.js 16
 - MongoDB
 - Docker & Docker Compose
+- Kubernetes (Optional)
 - Jenkins (CI/CD)
 - DockerHub (Container Registry)
 - Ansible (Remote Deployment)
@@ -96,6 +97,30 @@ ansible-playbook -i hosts playbook.yaml
 
 ---
 
+## ☸️ Kubernetes Deployment
+
+### Location: `k8s/`
+
+You can run the application on a Kubernetes cluster using the following manifests:
+
+- `namespace.yaml`: Creates a dedicated namespace.
+- `mongo-deployment.yaml`: Deploys MongoDB.
+- `mongo-service.yaml`: Exposes MongoDB as a ClusterIP service.
+- `mongo-pvc.yaml`: Adds persistent volume claim for MongoDB.
+- `app-deployment.yaml`: Deploys the Node.js application.
+- `app-service.yaml`: Exposes the app (NodePort or LoadBalancer).
+
+### Steps:
+
+```bash
+kubectl apply -f k8s/namespace.yaml
+kubectl apply -f k8s/
+```
+
+> Make sure to configure `MONGO_URL` in your deployment YAML to match your service name (`mongodb://mongo:27017/todo_db`).
+
+---
+
 ## 🧪 Project Structure
 
 ```
@@ -105,10 +130,17 @@ todo-list-nodejs/
 │   ├── docker-compose.yml
 │   ├── hosts
 │   └── playbook.yaml
+├── k8s/
+│   ├── app-deployment.yaml
+│   ├── app-service.yaml
+│   ├── mongo-deployment.yaml
+│   ├── mongo-pvc.yaml
+│   ├── mongo-service.yaml
+│   └── namespace.yaml
 ├── Dockerfile
 ├── Jenkinsfile
 ├── docker-compose.yml
-└── ...
+├── ...
 ```
 
 ---
